@@ -107,6 +107,10 @@ async function actionDraw() {
     addCardToDomByImgUri(imgCardUri);
     
     arrayCards = arrayCodeCards.push(drawCardResponse.cards[0].code)
+
+    if(drawCardResponse.remaining === 0) {
+        document.getElementById("action-draw").disabled = true;
+    }
   
 }
 
@@ -131,8 +135,8 @@ async function addLastCardToDeck() {
 }
 
 async function actionReturning() {
-    addLastCardToDeck();
-    removeCard();
+    await addLastCardToDeck();
+    await removeCard();
     
     console.log("---------------->", arrayCodeCards);
 }

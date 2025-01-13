@@ -1,10 +1,3 @@
-/*async function callAPI(uri) {
-    const response = await fetch(uri);
-    const data = await response.json();
-    return data;
-}*/
-
-
 //fonction qui fait le fetch(), qui contacte l'API
 async function callAPI(uri) {
     console.log("-- callAPI - start --");
@@ -37,6 +30,10 @@ async function getNewDeck() {
 // variable globale : l'id du deck utilisé, dans lequel on pioche
 let idDeck = null;
 
+// variable globale : l'id de la carte utilisé
+let idCard = null;
+
+
 // function (syntaxe de function fléchée) qui renvoient des URI dynamiques de demande de mélange du deck et de pioche
 const getApiEndpointShuffleDeck = () => `https://deckofcardsapi.com/api/deck/${idDeck}/shuffle/`;
 
@@ -50,7 +47,7 @@ async function shuffleDeck() {
 
 
 // function (syntaxe de function fléchée) qui renvoient des URI dynamiques de demande de mélange du deck et de pioche
-const getApiEndpointDrawCard = () => `https://deckofcardsapi.com/api/deck/${idDeck}/draw/?count=2`;
+const getApiEndpointDrawCard = () => `https://deckofcardsapi.com/api/deck/${idDeck}/draw/?count=1`;
 
 
 // function de demande de pioche dans le deck
@@ -70,6 +67,7 @@ async function actionReset() {
 
     // récupération d'un nouveau deck
     const newDeckResponse = await getNewDeck();
+    console.log("--------->",newDeckResponse);
 
     // récupération de l'id de ce nouveau deck dans les données reçues et mise à jour de la variable globale
     idDeck = newDeckResponse.deck_id;
@@ -96,18 +94,48 @@ function addCardToDomByImgUri(imgUri) {
 
 
 // fonction qui demande à piocher une carte, puis qui fait l'appel pour l'intégrer dans le DOM
+var arrayCodeCards = [];
 async function actionDraw() {
     // appel à l'API pour demander au croupier de piocher une carte et de nous la renvoyer
     const drawCardResponse = await drawCard();
     console.log("drawCardResponse = ", drawCardResponse);
-
+    
     // récupération de l'URI de l'image de cette carte dans les données reçues
     const imgCardUri = drawCardResponse.cards[0].image;
-
+    
     // ajout de la carte piochée dans la zone des cartes piochées
     addCardToDomByImgUri(imgCardUri);
+    
+    arrayCards = arrayCodeCards.push(drawCardResponse.cards[0].code)
+  
 }
 
+
+const getApiEndpointReturningCard = () => `https://deckofcardsapi.com/api/deck/${idDeck}/return/?cards=${idCard}`
+
+// function de retour de carte
+async function returningCard() {
+    return await callAPI(getApiEndpointReturningCard());
+}
+
+async function removeCard () {
+    const Cards = document.getElementById("cards-container");
+    Cards.removeChild(Cards.lastChild);
+}
+
+async function addLastCardToDeck() {
+    const last = arrayCodeCards[arrayCodeCards.length - 1];
+    idCard = last;
+    returningCard()
+    arrayCards = arrayCodeCards.pop();
+}
+
+async function actionReturning() {
+    addLastCardToDeck();
+    removeCard();
+    
+    console.log("---------------->", arrayCodeCards);
+}
 
 // appel d'initialisation au lancement de l'application
 actionReset();
@@ -115,7 +143,9 @@ actionReset();
 // éléments HTML utiles pour les évènements et pour la manipulation du DOM
 const actionResetButton = document.getElementById("action-reset");
 const actionDrawButton = document.getElementById("action-draw");
+const actionReturningButton = document.getElementById("action-returning");
 
 // écoutes d'évènement sur les boutons d'action
 actionResetButton.addEventListener("click", actionReset);
 actionDrawButton.addEventListener("click", actionDraw);
+actionReturningButton.addEventListener("click", actionReturning);

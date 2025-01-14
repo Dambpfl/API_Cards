@@ -1,24 +1,50 @@
+const errorMessage = document.createElement("div");
+
+function displayErrorMessage(message) {
+    errorMessage.textContent = message;
+
+    errorMessage.style.color = "red";
+    errorMessage.style.display = "flex";
+    errorMessage.style.justifyContent = "center";
+
+    document.body.appendChild(errorMessage);
+
+    setTimeout(() => {
+        errorMessage.textContent = "";
+    }, 5000) // 5 secondes
+}
+
 //fonction qui fait le fetch(), qui contacte l'API
 async function callAPI(uri) {
     console.log("-- callAPI - start --");
     console.log("uri = ", uri);
 
-    // fetch(), appel à l'API et réception de la réponse
-    const response = await fetch(uri);
-    console.log("response = ", response);
+    try {
+        // fetch(), appel à l'API et réception de la réponse
+        const response = await fetch(uri);
+        console.log("response = ", response);
 
-    // récupération des données JSON reçues de l'API
-    const data = await response.json();
-    console.log("data = ", data);
+        // test si la réponse HTTP n'est pas dans la plage des succès (200-299)
+        if(!response.ok) {
+            throw new Error("Réponse HTTP incorrecte"); // exeption si reponse n'est pas un succes
+        }
 
-    console.log("-- CallAPI - end --");
+         // récupération des données JSON reçues de l'API
+         const data = await response.json();
+         console.log("data = ", data);
+ 
+         console.log("-- CallAPI - end --");
+ 
+         //renvoi des données
+         return data;
 
-    //renvoi des données
-    return data;
+    } catch (error) {
+        displayErrorMessage("Erreur de communication avec l'API");
+    }
 }
 
 // constante globale : l'URI du endpoint de demande de nouveau deck
-const API_ENDPOINT_NEW_DECK = "https://deckofcardsapi.com/api/deck/new/";
+const API_ENDPOINT_NEW_DECK = "https://deckofcardsapi.com/api/deck/nw/";
 
 // function de demande de nouveau deck
 async function getNewDeck() {
@@ -80,7 +106,6 @@ async function actionReset() {
 // éléments HTML utiles pour les évènements et pour la manipulation du DOM
 const cardsContainer = document.getElementById("cards-container");
 
-
 // ajoute une carte dans le DOM (dans la zone des cartes piochées) d'après l'URI de son image
 function addCardToDomByImgUri(imgUri) {
     // création de l'élément HTML "img", de classe CSS "card" et avec pour attribut HTML "src" l'URI reçue en argument
@@ -92,9 +117,9 @@ function addCardToDomByImgUri(imgUri) {
     cardsContainer.append(imgCardHtmlElement);
 }
 
+var arrayCodeCards = [];
 
 // fonction qui demande à piocher une carte, puis qui fait l'appel pour l'intégrer dans le DOM
-var arrayCodeCards = [];
 async function actionDraw() {
     // appel à l'API pour demander au croupier de piocher une carte et de nous la renvoyer
     const drawCardResponse = await drawCard();
@@ -105,7 +130,7 @@ async function actionDraw() {
     
     // ajout de la carte piochée dans la zone des cartes piochées
     addCardToDomByImgUri(imgCardUri);
-    
+
     arrayCards = arrayCodeCards.push(drawCardResponse.cards[0].code)
 
     if(drawCardResponse.remaining === 0) {
@@ -113,7 +138,6 @@ async function actionDraw() {
     }
   
 }
-
 
 const getApiEndpointReturningCard = () => `https://deckofcardsapi.com/api/deck/${idDeck}/return/?cards=${idCard}`
 

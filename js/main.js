@@ -44,7 +44,7 @@ async function callAPI(uri) {
 }
 
 // constante globale : l'URI du endpoint de demande de nouveau deck
-const API_ENDPOINT_NEW_DECK = "https://deckofcardsapi.com/api/deck/nw/";
+const API_ENDPOINT_NEW_DECK = "https://deckofcardsapi.com/api/deck/new/";
 
 // function de demande de nouveau deck
 async function getNewDeck() {
@@ -121,12 +121,17 @@ var arrayCodeCards = [];
 
 // fonction qui demande à piocher une carte, puis qui fait l'appel pour l'intégrer dans le DOM
 async function actionDraw() {
+
+    document.getElementById("action-draw").disabled = true;
+
     // appel à l'API pour demander au croupier de piocher une carte et de nous la renvoyer
     const drawCardResponse = await drawCard();
     console.log("drawCardResponse = ", drawCardResponse);
     
     // récupération de l'URI de l'image de cette carte dans les données reçues
     const imgCardUri = drawCardResponse.cards[0].image;
+  
+    document.getElementById("action-draw").disabled = false;
     
     // ajout de la carte piochée dans la zone des cartes piochées
     addCardToDomByImgUri(imgCardUri);
@@ -161,8 +166,6 @@ async function addLastCardToDeck() {
 async function actionReturning() {
     await addLastCardToDeck();
     await removeCard();
-    
-    console.log("---------------->", arrayCodeCards);
 }
 
 // appel d'initialisation au lancement de l'application
